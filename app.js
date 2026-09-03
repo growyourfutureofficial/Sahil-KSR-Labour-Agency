@@ -1,13 +1,14 @@
-// LOOPHOLE FIX 1: Signal the HTML Watchdog that ES Modules are successfully running
 window.appModuleLoaded = true; 
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
+import { getDatabase, ref, push, set, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js"; // NEW: Database added
 
 // 1. FIREBASE CONFIG (Replace with your own from Firebase Console)
 const firebaseConfig = {
   apiKey: "AIzaSyCC8cHl9TxOGft76mxNbl3UOcg8qZrv3Uo",
   authDomain: "bill-maker-6bfa7.firebaseapp.com",
+  databaseURL: "https://bill-maker-6bfa7-default-rtdb.asia-southeast1.firebasedatabase.app/", 
   projectId: "bill-maker-6bfa7",
   storageBucket: "bill-maker-6bfa7.firebasestorage.app",
   messagingSenderId: "120775881134",
@@ -121,3 +122,145 @@ if ('serviceWorker' in navigator) {
             });
     });
 }
+
+
+// --- NEW BILL MODULE LOGIC ---
+
+// Database Instance
+const db = getDatabase(app);
+
+// DOM Elements
+const newBillScreen = document.getElementById('new-bill-screen');
+const prevBillsScreen = document.getElementById('prev-bills-screen');
+const btnOpenNewBill = document.getElementById('btn-open-new-bill');
+const btnOpenPrevBills = document.getElementById('btn-open-prev-bills');
+const backButtons = document.querySelectorAll('.back-btn');
+const btnAddRow = document.getElementById('btn-add-row');
+const billItemsContainer = document.getElementById('bill-items-container');
+const btnGeneratePdf = document.getElementById('btn-generate-pdf');
+
+// Navigation Events
+btnOpenNewBill.addEventListener('click', () => navigateTo(newBillScreen));
+btnOpenPrevBills.addEventListener('click', () => navigateTo(prevBillsScreen));
+
+backButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const targetId = e.target.getAttribute('data-target');
+        navigateTo(document.getElementById(targetId));
+    });
+});
+
+// Dynamic Row Generator
+btnAddRow.addEventListener('click', () => {
+    const rowHTML = `
+        <div class="bill-row neumorphic-inset">
+            <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
+            <div class="row-math">
+                <input type="number" class="item-pree" placeholder="Pree Days" step="0.01" required>
+                <input type="number" class="item-per" placeholder="Per Day ₹" step="0.01" required>
+            </div>
+        </div>
+    `;
+    billItemsContainer.insertAdjacentHTML('beforeend', rowHTML);
+});
+
+// Engineered PDF Generation & Database Save Function
+btnGeneratePdf.addEventListener('click', async () => {
+    const rows = document.querySelectorAll('.bill-row');
+    const tableData = [];
+    let grandTotal = 0;
+    
+    // 1. Data Extraction & Floating Point Math Fix
+    let isValid = true;
+    rows.forEach((row, index) => {
+        const desc = row.querySelector('.item-desc').value.trim();
+        const pree = parseFloat(row.querySelector('.item-pree').value) || 0;
+        const per = parseFloat(row.querySelector('.item-per').value) || 0;
+        
+        if(!desc || pree <= 0 || per <= 0) isValid = false;
+
+        const amount = (pree * per);
+        grandTotal += amount;
+
+        // Push formatted data for PDF Array
+        tableData.push([
+            index + 1, 
+            desc, 
+            pree.toFixed(2), 
+            per.toFixed(2), 
+            `Rs. ${amount.toFixed(2)}`
+        ]);
+    });
+
+    if(!isValid) {
+        alert("Please fill all fields with valid numbers!");
+        return;
+    }
+
+    // Prepare Invoice Data Object for Database
+    const invoiceData = {
+        date: new Date().toISOString(),
+        items: tableData,
+        total: grandTotal,
+        timestamp: serverTimestamp()
+    };
+
+    try {
+        btnGeneratePdf.innerText = "Processing...";
+        
+        // 2. Save to Firebase Realtime Database FIRST (Security Loophole Blocked)
+        const user = auth.currentUser;
+        if(user) {
+            const billRef = push(ref(db, `bills/${user.uid}`));
+            await set(billRef, invoiceData);
+        }
+
+        // 3. Generate Vector PDF (Crisp A4 Size)
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Brand Header
+        doc.setFontSize(22);
+        doc.setTextColor(40, 40, 40);
+        doc.text("COMPANY BRANDING LTD.", 14, 20);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        const today = new Date().toLocaleDateString('en-IN');
+        doc.text(`Invoice Date: ${today}`, 14, 28);
+        doc.text(`Invoice No: INV-${Math.floor(Math.random()*10000)}`, 14, 34);
+
+        // AutoTable for absolute exact dimensions
+        doc.autoTable({
+            startY: 45,
+            head: [['S.No', 'Designation', 'Pree Days', 'Per Day', 'Amount (INR)']],
+            body: tableData,
+            foot: [['', '', '', 'Grand Total:', `Rs. ${grandTotal.toFixed(2)}`]],
+            theme: 'grid',
+            headStyles: { fillColor: [74, 85, 104] }, // Matches Neumorphic dark accent
+            footStyles: { fillColor: [240, 240, 240], textColor: [0,0,0], fontStyle: 'bold' }
+        });
+
+        // 4. Native Download Trigger
+        doc.save(`BillGen_${today.replace(/\//g, '-')}.pdf`);
+
+        btnGeneratePdf.innerText = "Generate & Save PDF Bill";
+        
+        // Reset Form
+        billItemsContainer.innerHTML = `
+            <div class="bill-row neumorphic-inset">
+                <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
+                <div class="row-math">
+                    <input type="number" class="item-pree" placeholder="Pree Days" step="0.01" required>
+                    <input type="number" class="item-per" placeholder="Per Day ₹" step="0.01" required>
+                </div>
+            </div>
+        `;
+        navigateTo(mainApp); // Go back to dash after success
+
+    } catch (error) {
+        console.error("Operation Failed: ", error);
+        alert("Error saving bill. Check network.");
+        btnGeneratePdf.innerText = "Generate & Save PDF Bill";
+    }
+});
