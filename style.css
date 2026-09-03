@@ -8,15 +8,32 @@
     --error-color: #e53e3e;
 }
 
+/* =========================================
+   NATIVE APP LOCK ENGINE (Zero Web Feel)
+   ========================================= */
+
+/* 1. COMPLETELY HIDE SCROLLBARS BUT KEEP SCROLL ACTIVE */
+::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    background: transparent;
+}
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
     -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on mobile */
 }
 
+/* 2. PREVENT TEXT SELECTION & MOBILE LONG-PRESS CALLOUTS */
 body {
+    -webkit-user-select: none; /* Safari */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+/Edge */
+    user-select: none; /* Standard */
+    
+    -webkit-touch-callout: none; /* Disables iOS Safari Long Press Popup */
+    
     background-color: var(--bg-color);
     color: var(--text-main);
     height: 100vh;
@@ -24,7 +41,15 @@ body {
     overflow: hidden;
 }
 
-/* Screen Management (SPNWA routing logic) */
+/* 3. ENGINEERED LOOPHOLE FIX: Keep Form Inputs Editable & Selectable */
+input, textarea, select {
+    -webkit-user-select: auto !important;
+    -moz-user-select: auto !important;
+    -ms-user-select: auto !important;
+    user-select: auto !important;
+}
+
+/* Screen Management (Zero-Latency Native Snap) */
 .screen {
     position: absolute;
     top: 0;
@@ -35,53 +60,12 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease;
-    opacity: 1;
     z-index: 10;
+    /* ENGINEERED FIX: All transitions removed for instant native rendering */
 }
 
 .screen.hidden {
-    opacity: 0;
-    pointer-events: none; /* Prevents clicks on hidden elements */
-    z-index: -1;
-    transform: scale(0.98);
-}
-
-/* --- SPLASH SCREEN --- */
-#splash-screen {
-    background-color: var(--bg-color);
-    z-index: 999;
-}
-
-.neumorphic-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--bg-color);
-    box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
-    animation: pulse 2s infinite;
-}
-
-.logo-text {
-    font-size: 36px;
-    font-weight: bold;
-    color: var(--text-main);
-}
-
-.loading-text {
-    margin-top: 30px;
-    font-size: 14px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); }
-    50% { box-shadow: 15px 15px 25px var(--shadow-dark), -15px -15px 25px var(--shadow-light); }
-    100% { box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); }
+    display: none !important; /* Immediately removes element from DOM flow, zero lag */
 }
 
 /* --- COMPONENTS (Login & Dash) --- */
@@ -228,7 +212,8 @@ body {
     overflow-y: auto;
     padding: 20px;
     width: 100%;
-    padding-bottom: 80px; /* Space for scroll */
+    /* ENGINEERED FIX: Native padding plus OS Safe Area inset for modern notches/home bars */
+    padding-bottom: calc(80px + env(safe-area-inset-bottom)); 
 }
 
 /* --- FORM & ROWS --- */
@@ -273,7 +258,7 @@ body {
     border-radius: 10px;
     background: transparent;
     color: var(--text-main);
-    font-size: 14px;
+    font-size: 16px; /* ENGINEERED FIX: Strictly 16px to prevent iOS Auto-Zoom */
     border-bottom: 2px solid rgba(163, 177, 198, 0.3);
 }
 
@@ -332,6 +317,10 @@ body {
     font-size: 16px;
     color: var(--text-main);
     margin-bottom: 5px;
+    white-space: nowrap; /* ENGINEERED FIX: Forces text to single line */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px; 
 }
 
 .bill-details p {
@@ -397,16 +386,20 @@ body {
 }
 
 .company-address {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     font-size: 13px;
     opacity: 0.85;
     gap: 6px;
     background: rgba(0, 0, 0, 0.15);
-    display: inline-flex;
     padding: 6px 12px;
     border-radius: 20px;
+    max-width: 90%; /* ENGINEERED FIX: Prevents container overflow */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
 .company-address .material-symbols-rounded {
     font-size: 16px;
 }
@@ -436,4 +429,90 @@ body {
     margin-left: 15px;
     opacity: 0.4;
     border-radius: 2px;
+}
+
+
+/* =========================================
+   ROW DELETION & CUSTOM MODAL UI
+   ========================================= */
+
+/* Relative position for the row to hold the absolute delete button */
+.bill-row {
+    position: relative; 
+    padding-top: 35px; /* Extra space for the delete button */
+}
+
+/* Delete Cross Icon */
+.btn-remove-row {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: var(--error-color);
+    cursor: pointer;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    z-index: 5;
+}
+
+.btn-remove-row:active {
+    transform: scale(0.8);
+    opacity: 0.7;
+}
+
+
+.custom-modal {
+    background: rgba(224, 229, 236, 0.75);
+    backdrop-filter: blur(8px); /* Native iOS/Android Blur effect */
+    z-index: 10000; /* ENGINEERED FIX: Must be strictly higher than premium-banner (9999) */
+}
+
+.modal-content {
+    width: 85%;
+    max-width: 320px;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-warning-icon {
+    font-size: 45px !important;
+    color: var(--error-color);
+    margin-bottom: 10px;
+}
+
+.modal-content h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: var(--text-main);
+}
+
+.modal-content p {
+    font-size: 13px;
+    color: #718096;
+    text-align: center;
+    margin-bottom: 25px;
+    line-height: 1.4;
+}
+
+.modal-actions {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    gap: 15px;
+}
+
+.modal-danger-btn {
+    background: var(--error-color);
+    color: #ffffff;
+    box-shadow: 4px 4px 10px rgba(229, 62, 62, 0.4), -4px -4px 10px var(--shadow-light);
+}
+
+.modal-danger-btn:active {
+    box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2), inset -2px -2px 5px rgba(255,255,255,0.2);
 }
