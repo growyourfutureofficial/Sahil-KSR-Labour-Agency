@@ -34,18 +34,65 @@
         </div>
     </div>
 
-    <!-- 3. MAIN DASHBOARD -->
+    <!-- Add these 2 lines in your <head> exactly above the </head> tag -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- 3. MAIN DASHBOARD (Updated with Professional Grids) -->
     <div id="main-app" class="screen hidden">
         <nav class="neumorphic-nav">
             <h2>BillGen Pro</h2>
             <button id="logout-btn" class="neumorphic-btn-small">Logout</button>
         </nav>
         <div class="dashboard-content">
-            <!-- App Content will be dynamically rendered here -->
-            <div class="neumorphic-card">
-                <h3>Welcome, Admin</h3>
-                <p>App is ready for module integrations.</p>
+            <div class="dashboard-grid">
+                <div class="grid-card neumorphic-card" id="btn-open-new-bill">
+                    <div class="grid-icon">📄+</div>
+                    <h3>Create New Bill</h3>
+                </div>
+                <div class="grid-card neumorphic-card" id="btn-open-prev-bills">
+                    <div class="grid-icon">🗂️</div>
+                    <h3>Previous Bills</h3>
+                </div>
             </div>
+        </div>
+    </div>
+
+    <!-- 4. NEW BILL SCREEN (Native Feel, Fixed Header) -->
+    <div id="new-bill-screen" class="screen hidden native-layout">
+        <div class="fixed-title-bar">
+            <button class="neumorphic-btn-icon back-btn" data-target="main-app">⬅</button>
+            <h2>New Invoice</h2>
+            <button class="neumorphic-btn-icon" id="btn-add-row">➕</button>
+        </div>
+        
+        <div class="scrollable-body">
+            <div class="form-container" id="bill-items-container">
+                <!-- Dynamic Rows will be injected here -->
+                <div class="bill-row neumorphic-inset">
+                    <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
+                    <div class="row-math">
+                        <input type="number" class="item-pree" placeholder="Pree Days" step="0.01" required>
+                        <input type="number" class="item-per" placeholder="Per Day ₹" step="0.01" required>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-footer">
+                <button id="btn-generate-pdf" class="neumorphic-btn accent-btn">Generate & Save PDF Bill</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. PREVIOUS BILLS SCREEN -->
+    <div id="prev-bills-screen" class="screen hidden native-layout">
+        <div class="fixed-title-bar">
+            <button class="neumorphic-btn-icon back-btn" data-target="main-app">⬅</button>
+            <h2>Previous Bills</h2>
+            <div style="width:40px;"></div> <!-- Spacer -->
+        </div>
+        <div class="scrollable-body" id="prev-bills-container">
+            <p style="text-align:center; margin-top:20px;">Fetching from Database...</p>
         </div>
     </div>
 
