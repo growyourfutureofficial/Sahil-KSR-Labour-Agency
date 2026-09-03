@@ -1,4 +1,4 @@
-const CACHE_NAME = "billgen-neumorphic-cache-v3"; // Version bumped to force update
+const CACHE_NAME = "billgen-neumorphic-cache-v4"; // Version bumped to force update
 const urlsToCache = [
   "./",
   "./index.html",
