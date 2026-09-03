@@ -44,20 +44,36 @@
         </div>
     </div>
 
-    <!-- 3. MAIN DASHBOARD (Updated with Material Icons) -->
-    <div id="main-app" class="screen hidden">
-        <nav class="neumorphic-nav">
-            <h2>BillGen Pro</h2>
-            <button id="logout-btn" class="neumorphic-btn-small">Logout</button>
-        </nav>
-        <div class="dashboard-content">
+    <!-- 3. MAIN DASHBOARD (Premium Native Layout with Hero Banner) -->
+    <div id="main-app" class="screen hidden native-layout">
+        
+        <!-- Premium Gradient Hero Banner -->
+        <div class="hero-gradient-banner">
+            <button id="logout-btn" class="neumorphic-btn-icon banner-logout" title="Logout">
+                <span class="material-symbols-rounded">logout</span>
+            </button>
+            <h1 class="company-name">Sahil</h1>
+            <p class="company-slogan">KSR Labour Agency</p>
+            <div class="company-address">
+                <span class="material-symbols-rounded">location_on</span>
+                Guwahati, Assam, India
+            </div>
+        </div>
+
+        <!-- Categorized Grid Section -->
+        <div class="scrollable-body" style="padding-top: 15px;">
+            <div class="category-header">
+                <h3>Premium Features</h3>
+                <div class="category-line"></div>
+            </div>
+            
             <div class="dashboard-grid">
                 <div class="grid-card neumorphic-card" id="btn-open-new-bill">
-                    <span class="material-symbols-rounded grid-icon">post_add</span>
+                    <span class="material-symbols-rounded grid-icon" style="color: #4A00E0;">post_add</span>
                     <h3>Create Bill</h3>
                 </div>
                 <div class="grid-card neumorphic-card" id="btn-open-prev-bills">
-                    <span class="material-symbols-rounded grid-icon">folder_open</span>
+                    <span class="material-symbols-rounded grid-icon" style="color: #8E2DE2;">folder_open</span>
                     <h3>History</h3>
                 </div>
             </div>
