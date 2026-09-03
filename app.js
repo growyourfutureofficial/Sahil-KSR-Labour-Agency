@@ -209,14 +209,22 @@ btnOpenPrevBills.addEventListener('click', () => {
 
 
 // --- 9. ENGINEERED PDF GENERATOR ---
-
-// Promise wrapper to prevent JS-PDF crash while loading image
-const loadImage = (url) => new Promise((resolve) => {
-    const img = new Image();
-    img.src = url;
-    img.onload = () => resolve(img);
-    img.onerror = () => resolve(null); 
-});
+// LOOPHOLE FIX: Fetch Image as Blob and convert to Base64 to bypass CORS and Tainted Canvas errors
+const loadLogoAsBase64 = async (url) => {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Logo not found");
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result); // Returns pure Base64 string
+            reader.readAsDataURL(blob);
+        });
+    } catch (error) {
+        console.warn("Logo load failed. Proceeding without logo.", error);
+        return null; // Failsafe: if image is missing, PDF still generates
+    }
+};
 
 btnGeneratePdf.addEventListener('click', async () => {
     const rows = document.querySelectorAll('.bill-row');
@@ -258,26 +266,28 @@ btnGeneratePdf.addEventListener('click', async () => {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();
         
-        // Load Logo Asynchronously
-        const logoPath = './assets/image/logo.png'; 
-        const logoImg = await loadImage(logoPath);
-        if(logoImg) {
-            // Centers the logo based on A4 width
-            doc.addImage(logoImg, 'PNG', (pageWidth/2) - 15, 10, 30, 30);
+        // ENGINEERED FIX: Inject Base64 Logo directly into PDF
+        // Updated path exactly as you requested: inside assets folder
+        const logoPath = './assets/logo.png'; 
+        const logoBase64 = await loadLogoAsBase64(logoPath);
+        
+        if (logoBase64) {
+            // doc.addImage perfectly parses Base64 without any async skipping or Canvas block
+            doc.addImage(logoBase64, 'PNG', (pageWidth/2) - 15, 10, 30, 30);
         }
 
         // Multi-Color Branding Header
         doc.setFontSize(24);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(59, 130, 246); // Material Blue Branding
-        doc.text("EXPERT ENGINEERS LTD.", pageWidth/2, 48, { align: "center" });
+        doc.text("SAHIL ~ KSR LABOUR AGENCY", pageWidth/2, 48, { align: "center" });
         
         // Contact Details
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(100, 100, 100);
-        doc.text("123 Advanced Tech Park, IT City, India", pageWidth/2, 54, { align: "center" });
-        doc.text("Email: billing@expertengineers.com | Phone: +91-9876543210", pageWidth/2, 59, { align: "center" });
+        doc.text("Udalguri, Guwahati (Assam)", pageWidth/2, 54, { align: "center" });
+        doc.text("Email: billgen@expertengineers.com | Phone: +91 70450 90588", pageWidth/2, 59, { align: "center" });
 
         // Divider Line
         doc.setLineWidth(0.5);
@@ -314,7 +324,7 @@ btnGeneratePdf.addEventListener('click', async () => {
         doc.setFontSize(9);
         doc.setFont("helvetica", "italic");
         doc.setTextColor(150, 150, 150);
-        doc.text("Thank you for your business. This is a computer generated invoice.", pageWidth/2, finalY + 70, { align: "center" });
+        doc.text("Thank you for your business. It is officially generated invoice.", pageWidth/2, finalY + 70, { align: "center" });
 
         doc.save(`Expert_Bill_${today.replace(/\//g, '-')}.pdf`);
 
