@@ -1,1 +1,178 @@
-hi
+/* Core Variables for Neumorphism */
+:root {
+    --bg-color: #e0e5ec;
+    --text-main: #4a5568;
+    --shadow-light: rgba(255, 255, 255, 0.7);
+    --shadow-dark: rgba(163, 177, 198, 0.6);
+    --transition-speed: 0.4s;
+    --error-color: #e53e3e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent; /* Removes blue tap highlight on mobile */
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* Screen Management (SPNWA routing logic) */
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition-speed) ease-in-out, transform var(--transition-speed) ease;
+    opacity: 1;
+    z-index: 10;
+}
+
+.screen.hidden {
+    opacity: 0;
+    pointer-events: none; /* Prevents clicks on hidden elements */
+    z-index: -1;
+    transform: scale(0.98);
+}
+
+/* --- SPLASH SCREEN --- */
+#splash-screen {
+    background-color: var(--bg-color);
+    z-index: 999;
+}
+
+.neumorphic-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-color);
+    box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
+    animation: pulse 2s infinite;
+}
+
+.logo-text {
+    font-size: 36px;
+    font-weight: bold;
+    color: var(--text-main);
+}
+
+.loading-text {
+    margin-top: 30px;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); }
+    50% { box-shadow: 15px 15px 25px var(--shadow-dark), -15px -15px 25px var(--shadow-light); }
+    100% { box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light); }
+}
+
+/* --- COMPONENTS (Login & Dash) --- */
+.neumorphic-card {
+    background: var(--bg-color);
+    border-radius: 20px;
+    padding: 40px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 9px 9px 16px var(--shadow-dark), -9px -9px 16px var(--shadow-light);
+    text-align: center;
+}
+
+.input-group {
+    margin-top: 25px;
+    width: 100%;
+}
+
+.neumorphic-input {
+    width: 100%;
+    padding: 15px 20px;
+    border: none;
+    outline: none;
+    background: var(--bg-color);
+    border-radius: 50px;
+    font-size: 16px;
+    color: var(--text-main);
+    box-shadow: inset 6px 6px 10px var(--shadow-dark), inset -6px -6px 10px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.neumorphic-input:focus {
+    box-shadow: inset 8px 8px 12px var(--shadow-dark), inset -8px -8px 12px var(--shadow-light);
+}
+
+.neumorphic-btn {
+    margin-top: 35px;
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 50px;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 6px 6px 10px var(--shadow-dark), -6px -6px 10px var(--shadow-light);
+    transition: all 0.2s ease;
+}
+
+.neumorphic-btn:active {
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+}
+
+.error-msg {
+    color: var(--error-color);
+    font-size: 12px;
+    margin-top: 15px;
+    transition: opacity 0.3s;
+}
+
+/* Dashboard Nav */
+.neumorphic-nav {
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(163, 177, 198, 0.4);
+    position: absolute;
+    top: 0;
+}
+
+.neumorphic-btn-small {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--bg-color);
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+}
+.neumorphic-btn-small:active {
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+}
+
+.dashboard-content {
+    margin-top: 100px; /* Space for nav */
+    width: 100%;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+}
