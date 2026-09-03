@@ -1,1 +1,67 @@
-Hi
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Bill Generator</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 1. SPLASH SCREEN (Native Feel) -->
+    <div id="splash-screen" class="screen active">
+        <div class="neumorphic-circle">
+            <h1 class="logo-text">BG</h1>
+        </div>
+        <p class="loading-text">Loading Workspace...</p>
+    </div>
+
+    <!-- 2. LOGIN SCREEN -->
+    <div id="login-screen" class="screen hidden">
+        <div class="login-card neumorphic-card">
+            <h2>Secure Login</h2>
+            <form id="login-form">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required class="neumorphic-input">
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required class="neumorphic-input">
+                </div>
+                <p id="auth-error" class="error-msg hidden"></p>
+                <button type="submit" class="neumorphic-btn" id="login-btn">Authenticate</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. MAIN DASHBOARD -->
+    <div id="main-app" class="screen hidden">
+        <nav class="neumorphic-nav">
+            <h2>BillGen Pro</h2>
+            <button id="logout-btn" class="neumorphic-btn-small">Logout</button>
+        </nav>
+        <div class="dashboard-content">
+            <!-- App Content will be dynamically rendered here -->
+            <div class="neumorphic-card">
+                <h3>Welcome, Admin</h3>
+                <p>App is ready for module integrations.</p>
+            </div>
+        </div>
+    </div>
+
+<!-- LOOPHOLE FIX: Watchdog Script to catch silent Module/CORS crashes -->
+    <script>
+        window.appModuleLoaded = false;
+        setTimeout(() => {
+            if (!window.appModuleLoaded) {
+                const splashText = document.querySelector('.loading-text');
+                splashText.innerText = "Fatal Error: Module Blocked! (Run on GitHub Pages/Localhost, do NOT double-click HTML file)";
+                splashText.style.color = "var(--error-color)";
+            }
+        }, 4000);
+    </script>
+    
+    <!-- Modular JS Approach (No Render Blocking) -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
