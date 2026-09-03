@@ -5,6 +5,24 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.4.0/firebas
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-auth.js";
 import { getDatabase, ref, push, set, serverTimestamp, onValue } from "https://www.gstatic.com/firebasejs/10.4.0/firebase-database.js";
 
+// ==========================================
+// ENGINEERED FIX: NATIVE APP SECURITY LOCK
+// ==========================================
+
+// Completely disable Right-Click / Context Menu globally
+document.addEventListener('contextmenu', (e) => {
+    // Failsafe: Allow right-click strictly ONLY inside input fields 
+    // so users can still paste text if they really need to.
+    if(e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+        e.preventDefault(); 
+    }
+});
+
+// Disable dragging images/links natively
+document.addEventListener('dragstart', (e) => {
+    e.preventDefault();
+});
+
 // 1. FIREBASE CONFIG 
 const firebaseConfig = {
   apiKey: "AIzaSyCC8cHl9TxOGft76mxNbl3UOcg8qZrv3Uo",
@@ -16,8 +34,7 @@ const firebaseConfig = {
   appId: "1:120775881134:web:ac5bd352edc75a4f45983f"
 };
 
-// 2. DOM ELEMENTS
-const splashScreen = document.getElementById('splash-screen');
+
 const loginScreen = document.getElementById('login-screen');
 const mainApp = document.getElementById('main-app');
 const newBillScreen = document.getElementById('new-bill-screen');
@@ -27,33 +44,42 @@ const loginForm = document.getElementById('login-form');
 const logoutBtn = document.getElementById('logout-btn');
 const authError = document.getElementById('auth-error');
 const loginBtn = document.getElementById('login-btn');
-const splashText = document.querySelector('.loading-text');
+// --- ENGINEERED FIX: MODAL & DELETION VARIABLES ---
+const customConfirmModal = document.getElementById('custom-confirm-modal');
+const btnModalCancel = document.getElementById('btn-modal-cancel');
+const btnModalConfirm = document.getElementById('btn-modal-confirm');
+let rowToDelete = null; // Strictly locks the target row to prevent accidental double deletions
 
-// 3. ADVANCED SPNWA ROUTING ENGINE (Hardware Backpress Loophole Fixed)
+// 3. ADVANCED SPNWA ROUTING ENGINE (Instant Native Snap, Zero Latency)
 const navigateTo = (screenElement, addToHistory = true) => {
-    // Hide all screens
-    [splashScreen, loginScreen, mainApp, newBillScreen, prevBillsScreen].forEach(el => {
+    // Hide all screens instantly
+    [loginScreen, mainApp, newBillScreen, prevBillsScreen].forEach(el => {
         if(el) el.classList.add('hidden');
     });
     
-    // Smooth transition
-    setTimeout(() => {
-        if(screenElement) screenElement.classList.remove('hidden');
-    }, 50); 
+    // ENGINEERED FIX: Removed 50ms setTimeout for instant DOM rendering
+    if(screenElement) {
+        screenElement.classList.remove('hidden');
+    }
 
     // Inject state to Browser History to hijack Native Back Button
-    if (addToHistory && screenElement.id !== 'splash-screen' && screenElement.id !== 'login-screen') {
+    if (addToHistory && screenElement.id !== 'login-screen') {
         history.pushState({ screen: screenElement.id }, '', `#${screenElement.id}`);
     }
 };
 
-// Listen for Android Back Button / Browser Back
 window.addEventListener('popstate', (event) => {
+    // ENGINEERED FIX: Agar popup open hai aur back dabaya, toh sirf popup close hoga, screen nahi badlegi.
+    if (customConfirmModal && !customConfirmModal.classList.contains('hidden')) {
+        customConfirmModal.classList.add('hidden');
+        rowToDelete = null;
+        return; // Hijacks the back action securely
+    }
+
     if (event.state && event.state.screen) {
         const targetScreen = document.getElementById(event.state.screen);
-        if (targetScreen) navigateTo(targetScreen, false); // false prevents infinite loop
+        if (targetScreen) navigateTo(targetScreen, false); 
     } else {
-        // Fallback: If no history, go to dashboard if logged in
         if(auth && auth.currentUser) navigateTo(mainApp, false);
     }
 });
@@ -70,35 +96,32 @@ try {
     auth = getAuth(app);
     db = getDatabase(app);
 
+    // ENGINEERED FIX: If Firebase hangs, show Login Screen with Error instead of infinite blank screen
     const failsafeTimer = setTimeout(() => {
-        if(splashText) {
-            splashText.innerText = "Network Issue: Taking too long to connect...";
-            splashText.style.color = "var(--error-color)";
+        if(authError) {
+            authError.innerText = "Network Issue: Taking too long to connect...";
+            authError.classList.remove('hidden');
+            loginScreen.classList.remove('hidden');
         }
     }, 7000);
 
     // 4. AUTHENTICATION STATE OBSERVER
     onAuthStateChanged(auth, (user) => {
         clearTimeout(failsafeTimer); 
-        if(splashText) splashText.innerText = "Securing Connection...";
         
-        setTimeout(() => {
-            if (user) {
-                navigateTo(mainApp);
-            } else {
-                navigateTo(loginScreen);
-            }
-        }, 1000); 
+        // Instant routing based on Auth State (No manual timeout needed anymore)
+        if (user) {
+            navigateTo(mainApp);
+        } else {
+            navigateTo(loginScreen);
+        }
     });
 } catch (error) {
     console.error("System Initialization Failed:", error);
-    if(splashText) {
-        if(error.message === "FIREBASE_CONFIG_MISSING") {
-            splashText.innerText = "Dev Error: Add correct Firebase config in app.js";
-        } else {
-            splashText.innerText = "System Error! Check Browser Console.";
-        }
-        splashText.style.color = "var(--error-color)";
+    if(authError) {
+        authError.innerText = error.message === "FIREBASE_CONFIG_MISSING" ? "Dev Error: Add correct Firebase config" : "System Error! Check Console.";
+        authError.classList.remove('hidden');
+        loginScreen.classList.remove('hidden');
     }
 }
 
@@ -155,9 +178,14 @@ backButtons.forEach(btn => {
     });
 });
 
+
+
+
+
 btnAddRow.addEventListener('click', () => {
     const rowHTML = `
         <div class="bill-row neumorphic-inset">
+            <button type="button" class="btn-remove-row" title="Remove Item"><span class="material-symbols-rounded">close</span></button>
             <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
             <div class="row-math">
                 <input type="number" class="item-pree" placeholder="Pree Days" step="0.01" required>
@@ -167,6 +195,38 @@ btnAddRow.addEventListener('click', () => {
     `;
     billItemsContainer.insertAdjacentHTML('beforeend', rowHTML);
 });
+
+
+
+// --- 7.5 ENGINEERED FIX: REMOVE ROW & NATIVE MODAL LOGIC (Event Delegation) ---
+billItemsContainer.addEventListener('click', (e) => {
+    // Event delegation: Sirf tabhi trigger hoga jab 'close' icon ya button par click ho
+    const removeBtn = e.target.closest('.btn-remove-row');
+    if (removeBtn) {
+        rowToDelete = removeBtn.closest('.bill-row'); // Locks the exact parent row in memory
+        customConfirmModal.classList.remove('hidden'); // Native instant popup
+    }
+});
+
+btnModalCancel.addEventListener('click', () => {
+    customConfirmModal.classList.add('hidden');
+    rowToDelete = null; // Prevents memory leaks
+});
+
+btnModalConfirm.addEventListener('click', () => {
+    if (rowToDelete) {
+        rowToDelete.remove(); // Safely removes DOM element
+        rowToDelete = null;
+    }
+    customConfirmModal.classList.add('hidden');
+    
+    // ENGINEERED FAILSAFE: Prevent PDF Crash
+    // Agar user ne saari rows delete kar di, toh auto-inject 1 empty row immediately
+    if (billItemsContainer.querySelectorAll('.bill-row').length === 0) {
+        btnAddRow.click();
+    }
+});
+
 
 // --- 8. PREVIOUS BILLS (Realtime Database Fetcher) ---
 btnOpenPrevBills.addEventListener('click', () => {
@@ -333,6 +393,7 @@ btnGeneratePdf.addEventListener('click', async () => {
         // Reset Form
         billItemsContainer.innerHTML = `
             <div class="bill-row neumorphic-inset">
+                <button type="button" class="btn-remove-row" title="Remove Item"><span class="material-symbols-rounded">close</span></button>
                 <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
                 <div class="row-math">
                     <input type="number" class="item-pree" placeholder="Pree Days" step="0.01" required>
