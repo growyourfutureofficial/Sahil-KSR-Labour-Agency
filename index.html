@@ -6,10 +6,19 @@
     <title>Pro Bill Generator</title>
     <link rel="manifest" href="manifest.json">
     <link rel="stylesheet" href="style.css">
+    
+    <!-- LOOPHOLE FIX 1: Material Symbols Rounded for Premium Native Feel -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,1,0" />
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
-    <!-- 1. SPLASH SCREEN (Native Feel) -->
+    <!-- LOOPHOLE FIX 2: Multi-color Professional Banner (Appears on all screens) -->
+    <div class="premium-banner"></div>
+
+    <!-- 1. SPLASH SCREEN -->
     <div id="splash-screen" class="screen active">
         <div class="neumorphic-circle">
             <h1 class="logo-text">BG</h1>
@@ -17,9 +26,10 @@
         <p class="loading-text">Loading Workspace...</p>
     </div>
 
-    <!-- 2. LOGIN SCREEN -->
+    <!-- 2. LOGIN SCREEN (Remains Same, just ensuring structure) -->
     <div id="login-screen" class="screen hidden">
         <div class="login-card neumorphic-card">
+            <span class="material-symbols-rounded premium-icon" style="font-size: 48px;">lock</span>
             <h2>Secure Login</h2>
             <form id="login-form">
                 <div class="input-group">
@@ -34,11 +44,7 @@
         </div>
     </div>
 
-    <!-- Add these 2 lines in your <head> exactly above the </head> tag -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
-    <!-- 3. MAIN DASHBOARD (Updated with Professional Grids) -->
+    <!-- 3. MAIN DASHBOARD (Updated with Material Icons) -->
     <div id="main-app" class="screen hidden">
         <nav class="neumorphic-nav">
             <h2>BillGen Pro</h2>
@@ -47,28 +53,27 @@
         <div class="dashboard-content">
             <div class="dashboard-grid">
                 <div class="grid-card neumorphic-card" id="btn-open-new-bill">
-                    <div class="grid-icon">📄+</div>
-                    <h3>Create New Bill</h3>
+                    <span class="material-symbols-rounded grid-icon">post_add</span>
+                    <h3>Create Bill</h3>
                 </div>
                 <div class="grid-card neumorphic-card" id="btn-open-prev-bills">
-                    <div class="grid-icon">🗂️</div>
-                    <h3>Previous Bills</h3>
+                    <span class="material-symbols-rounded grid-icon">folder_open</span>
+                    <h3>History</h3>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 4. NEW BILL SCREEN (Native Feel, Fixed Header) -->
+    <!-- 4. NEW BILL SCREEN (Updated Icons) -->
     <div id="new-bill-screen" class="screen hidden native-layout">
         <div class="fixed-title-bar">
-            <button class="neumorphic-btn-icon back-btn" data-target="main-app">⬅</button>
+            <button class="neumorphic-btn-icon back-btn" data-target="main-app"><span class="material-symbols-rounded">arrow_back</span></button>
             <h2>New Invoice</h2>
-            <button class="neumorphic-btn-icon" id="btn-add-row">➕</button>
+            <button class="neumorphic-btn-icon" id="btn-add-row"><span class="material-symbols-rounded">add</span></button>
         </div>
         
         <div class="scrollable-body">
             <div class="form-container" id="bill-items-container">
-                <!-- Dynamic Rows will be injected here -->
                 <div class="bill-row neumorphic-inset">
                     <input type="text" class="item-desc" placeholder="Designation (e.g. Developer)" required>
                     <div class="row-math">
@@ -79,7 +84,7 @@
             </div>
             
             <div class="action-footer">
-                <button id="btn-generate-pdf" class="neumorphic-btn accent-btn">Generate & Save PDF Bill</button>
+                <button id="btn-generate-pdf" class="neumorphic-btn accent-btn">Generate & Save PDF</button>
             </div>
         </div>
     </div>
@@ -87,28 +92,27 @@
     <!-- 5. PREVIOUS BILLS SCREEN -->
     <div id="prev-bills-screen" class="screen hidden native-layout">
         <div class="fixed-title-bar">
-            <button class="neumorphic-btn-icon back-btn" data-target="main-app">⬅</button>
+            <button class="neumorphic-btn-icon back-btn" data-target="main-app"><span class="material-symbols-rounded">arrow_back</span></button>
             <h2>Previous Bills</h2>
-            <div style="width:40px;"></div> <!-- Spacer -->
+            <div style="width:40px;"></div>
         </div>
         <div class="scrollable-body" id="prev-bills-container">
             <p style="text-align:center; margin-top:20px;">Fetching from Database...</p>
         </div>
     </div>
 
-<!-- LOOPHOLE FIX: Watchdog Script to catch silent Module/CORS crashes -->
     <script>
         window.appModuleLoaded = false;
         setTimeout(() => {
             if (!window.appModuleLoaded) {
                 const splashText = document.querySelector('.loading-text');
-                splashText.innerText = "Fatal Error: Module Blocked! (Run on GitHub Pages/Localhost, do NOT double-click HTML file)";
-                splashText.style.color = "var(--error-color)";
+                if(splashText) {
+                    splashText.innerText = "Fatal Error: Module Blocked! Check hosting.";
+                    splashText.style.color = "var(--error-color)";
+                }
             }
         }, 4000);
     </script>
-    
-    <!-- Modular JS Approach (No Render Blocking) -->
     <script type="module" src="app.js"></script>
 </body>
 </html>
