@@ -1,13 +1,14 @@
-const CACHE_NAME = "billgen-neumorphic-cache-v50"; // Version bumped to force update
+const CACHE_NAME = "billgen-spnwa-cache-v4"; // Version bumped for full cache reset
 const urlsToCache = [
   "./",
   "./index.html",
   "./style.css",
   "./app.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./assets/logo.png" // ENGINEERED FIX: Logo must be cached for offline PDF generation
 ];
 
-// Install Service Worker and Cache Assets (Loophole free offline load)
+// 1. INSTALLATION: Cache core native files
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
@@ -17,7 +18,7 @@ self.addEventListener("install", (event) => {
   );
 });
 
-// Activate and clean up old caches
+// 2. ACTIVATION: Wipe old zombie caches immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -33,29 +34,37 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
-// TRUE Network-First Strategy (Loophole Free for Updates & API calls)
+// 3. TRUE NETWORK-FIRST FETCH ENGINE (Zero Crash Offline Mode)
 self.addEventListener("fetch", (event) => {
-  // SECURITY FIX: Never intercept non-GET requests (e.g., Firebase Auth POST data)
+  // SECURITY FIX: Never intercept non-GET requests (e.g. Firebase Auth/DB POST data)
   if (event.request.method !== 'GET') return;
   
-  // LOGIC FIX: Do not intercept external CDNs, only cache your own GitHub hosted files
-  if (!event.request.url.startsWith(self.location.origin)) return;
+  const requestUrl = new URL(event.request.url);
+
+  // LOGIC FIX: Intercept only your hosted origin files (Ignore Firebase/CDN dynamically)
+  if (requestUrl.origin !== self.location.origin) return;
 
   event.respondWith(
-    fetch(event.request).then((networkResponse) => {
-      // Network worked! Update the cache with latest files silently
-      return caches.open(CACHE_NAME).then((cache) => {
-        cache.put(event.request, networkResponse.clone());
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Network worked! Update cache silently for seamless SPNWA updates
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
         return networkResponse;
-      });
-    }).catch(() => {
-      // Network failed! App is offline, fallback to the latest cached version
-      return caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
+      })
+      .catch(async () => {
+        // Network failed! App is offline -> Serve from Cache instantly
+        const cachedResponse = await caches.match(event.request);
+        if (cachedResponse) {
+            return cachedResponse;
         }
-      });
-    })
+        
+        // LOOPHOLE FIX: Ensure navigation EXACTLY matches the relative cache key
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html');
+        }
+      })
   );
 });
